@@ -1,9 +1,14 @@
+import numpy as np
 class Solution:
     def get_minimizer(self, iterations: int, learning_rate: float, init: int) -> float:
         # Objective function: f(x) = x^2
         # Derivative:         f'(x) = 2x
         # Update rule:        x = x - learning_rate * f'(x)
         # Round final answer to 5 decimal places
-        for i in range(iterations):
-            init = init - learning_rate * 2 * init
-        return round(init, 5)
+        x = init
+        for _ in range(iterations):
+            x -= (learning_rate * 2 * x)
+        
+        return np.round(x, 5)
+            
+        
