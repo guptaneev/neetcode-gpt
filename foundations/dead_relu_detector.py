@@ -30,9 +30,9 @@ class Solution:
         # 4. 'healthy' if max dead fraction < 0.1
         # 5. 'healthy' otherwise
         
-        for df in dead_fractions:
-            if df > 0.5:
-                return 'use_leaky_relu'
+        max_frac = max(dead_fractions)
+        if max_frac > 0.5:
+            return 'use_leaky_relu'
         
         if dead_fractions[0] > 0.3:
             return 'reinitialize'
@@ -50,7 +50,7 @@ class Solution:
         if flag and dead_fractions[-1] > 0.1:
             return 'reduce_learning_rate' 
         
-        if max(dead_fractions) < 0.1:
+        if max_frac < 0.1:
             return 'healthy'
         
         return 'healthy'
