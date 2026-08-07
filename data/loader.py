@@ -1,45 +1,31 @@
-from typing import List, Dict
+import torch
+from torchtyping import TensorType
+from typing import Tuple
 
 class Solution:
-    def _greedy_tokenize(self, text: str, vocab: Dict[str, int]) -> List[str]:
-        tokens = []
-        i = 0
-        while i < len(text):
-            best = None
-            for length in range(len(text) - i, 0, -1):
-                substr = text[i:i+length]
-                if substr in vocab:
-                    best = substr
-                    break
+    def create_batches(self, data: TensorType[int], context_length: int, batch_size: int) -> Tuple[TensorType[int], TensorType[int]]:
+        # data: 1D tensor of encoded text (integer token IDs)
+        # context_length: number of tokens in each training example
+        # batch_size: number of examples per batch
+        #
+        # Return (X, Y) where:
+        # - X has shape (batch_size, context_length)
+        # - Y has shape (batch_size, context_length)
+        # - Y is X shifted right by 1 (Y[i][j] = data[start_i + j + 1])
+        #
+        # Use torch.manual_seed(0) before generating random start indices
+        # Use torch.randint to pick random starting positions
+        torch.manual_seed(0)
+        start = torch.randint(len(data) - context_length, (batch_size,))
+
+
+        X = [[] for _ in range(batch_size)]
+        Y = [[] for _ in range(batch_size)]
+        for i in range(batch_size):
+            X[i] = data[start[i] : start[i] + context_length]
+            Y[i] = data[start[i] + 1 : start[i] + 1 + context_length]
+        
+        return torch.stack(X), torch.stack(Y)
             
-            if best is None:
-                tokens.append(text[i])
-                i += 1
-            else:
-                tokens.append(best)
-                i += len(best)
-        return tokens
 
-    def tokenize_numbers(self, numbers: List[int], vocab: Dict[str, int]) -> List[List[str]]:
-        # Tokenize each number using greedy left-to-right longest match.
-        # Return a list of token lists showing how each number gets split.
-        result = []
-        for num in numbers:
-            text = str(num)
-            tokens = self._greedy_tokenize(text, vocab)
-            result.append(tokens)
-        return result
 
-    def count_tokens(self, text: str, vocab: Dict[str, int]) -> int:
-        # Count how many tokens the text uses with greedy tokenization.
-        # Use greedy left-to-right longest match.
-        tokens = self._greedy_tokenize(text, vocab)
-        return len(tokens)
-
-    def fertility_score(self, text: str, vocab: Dict[str, int]) -> float:
-        # Compute tokens-per-word ratio (fertility).
-        # Higher = more expensive and less efficient.
-        # Round to 4 decimal places.
-        tokens = self._greedy_tokenize(text, vocab)
-        words = text.split()
-        return round(len(tokens) / len(words), 4)
